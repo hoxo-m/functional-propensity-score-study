@@ -1,0 +1,125 @@
+---
+title: ""
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message = FALSE
+)
+```
+
+```{r initialize}
+library(tidyverse)
+
+df_setting <- tribble(
+  ~ `Treat-Cov`, ~ `Cov-Outcome`, ~ `PVE`, ~ `PVE*`, ~ `Weight`, 
+  "Linear",     "Linear",     "",     "0.95", "Unweighted", 
+  "Linear",     "Linear",     "",     "0.99", "Unweighted", 
+  "Linear",     "Linear",     "0.95", "0.95", "Weighted",
+  "Linear",     "Linear",     "0.95", "0.99", "Weighted",
+  "Linear",     "Linear",     "0.99", "0.95", "Weighted",
+  "Linear",     "Linear",     "0.99", "0.99", "Weighted",
+  "Non-linear", "Linear",     "",     "0.95", "Unweighted", 
+  "Non-linear", "Linear",     "",     "0.99", "Unweighted", 
+  "Non-linear", "Linear",     "0.95", "0.95", "Weighted",
+  "Non-linear", "Linear",     "0.95", "0.99", "Weighted",
+  "Non-linear", "Linear",     "0.99", "0.95", "Weighted",
+  "Non-linear", "Linear",     "0.99", "0.99", "Weighted",
+  "Linear",     "Non-linear", "",     "0.95", "Unweighted", 
+  "Linear",     "Non-linear", "",     "0.99", "Unweighted", 
+  "Linear",     "Non-linear", "0.95", "0.95", "Weighted",
+  "Linear",     "Non-linear", "0.95", "0.99", "Weighted",
+  "Linear",     "Non-linear", "0.99", "0.95", "Weighted",
+  "Linear",     "Non-linear", "0.99", "0.99", "Weighted",
+  "Non-linear", "Non-linear", "",     "0.95", "Unweighted", 
+  "Non-linear", "Non-linear", "",     "0.99", "Unweighted", 
+  "Non-linear", "Non-linear", "0.95", "0.95", "Weighted",
+  "Non-linear", "Non-linear", "0.95", "0.99", "Weighted",
+  "Non-linear", "Non-linear", "0.99", "0.95", "Weighted",
+  "Non-linear", "Non-linear", "0.99", "0.99", "Weighted",
+)
+```
+
+```{r}
+box::use(./R/data_generation)
+box::use(estimate = ./R/estimate_causal_effect)
+
+n_iter <- 200 # Number of iteration
+n_size <- 200 # Data size
+
+dummy_data <- data_generation$simulate_data()
+true_effect_coefficients <- c(2, 1, 0.5, 0.5, 0, 0)
+mu_true <- drop(t(dummy_data$true_eigenfunction_phi_values) %*% 
+                  true_effect_coefficients)
+
+n_time = length(dummy_data$time_grid)
+
+dx <- diff(dummy_data$time_grid)
+my_integrate <- function(x) {
+  sum(dx * (x[-1] + x[-length(x)]) / 2)
+}
+
+execute_experiment <- function(settings) {
+  mu_hat_matrix <- matrix(nrow = n_iter, ncol = n_time)
+  ise_vec <- double(n_iter)
+  for (j in seq_len(n_iter)) {
+    data <- data_generation$simulate_data(
+      n = n_size, 
+      treatment_covariate_relation = settings$`Treat-Cov`, 
+      covariate_outcome_relation = settings$`Cov-Outcome`)
+    
+    pve <- settings$PVE
+    pve_star <- settings$`PVE*`
+    use_weight <- settings$Weight == "Weighted"
+    
+    mu_hat <- estimate$estimate_causal_effect(
+      data$outcome_Y, data$functional_treatment_X, data$time_grid,
+      data$covariates_C, pve, pve_star, use_weight)
+    
+    mu_hat_matrix[j, ] <- mu_hat
+    
+    squared_error <- (mu_hat - mu_true)^2
+    ise_vec[j] <- my_integrate(squared_error)
+  }
+  
+  isb <- my_integrate((colMeans(mu_hat_matrix) - mu_true)^2)
+  data.frame(MISE = median(ise_vec), AISE = mean(ise_vec), ISB = isb)
+}
+```
+
+```{r, cache=TRUE, results='hide'}
+library(future)
+library(furrr)
+
+workers <- min(availableCores(), nrow(df_setting) / 2)
+
+plan(multisession, workers = workers)
+
+df_setting1 <- df_setting |> filter(`PVE*` == 0.95)
+
+list_settings <- df_setting1 |> split(seq_len(nrow(df_setting1)))
+result <- future_map_dfr(list_settings, execute_experiment,
+                         .options = furrr_options(seed = 314))
+
+df1 <- cbind(df_setting1, round(result, digits = 4))
+```
+
+```{r}
+knitr::kable(df1)
+```
+
+```{r, cache=TRUE, results='hide'}
+df_setting2 <- df_setting |> filter(`PVE*` == 0.99)
+
+list_settings <- df_setting2 |> split(seq_len(nrow(df_setting2)))
+result <- future_map_dfr(list_settings, execute_experiment,
+                         .options = furrr_options(seed = 314))
+
+df2 <- cbind(df_setting2, round(result, digits = 4))
+```
+
+```{r}
+knitr::kable(df2)
+```
