@@ -134,7 +134,9 @@ effect function across replications.
 ## Estimation
 
 For each simulated data set, we estimate the causal effect function using
-either the unweighted estimator or the SFPS-weighted estimator.
+either the unweighted estimator or the SFPS-weighted estimator proposed
+in the paper. The unweighted estimator is included as a baseline for
+comparison.
 
 For the weighted estimator, the truncation level $L$ used to estimate the
 SFPS weights is selected according to the PVE threshold specified by
@@ -202,6 +204,9 @@ df <- cbind(simulation_settings, result)
 
 The results are presented separately according to the PVE threshold used
 to select $L^*$ in the outcome regression.
+
+The `Weight` column indicates whether the proposed SFPS weighting method
+is used; `Unweighted` denotes the baseline estimator without SFPS weighting.
 
 ### $PVE_{L^*} = 0.95$
 
