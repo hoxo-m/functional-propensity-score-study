@@ -37,15 +37,6 @@ reimplemented, and its main results have been reproduced.
   — questions and observations concerning the theoretical derivation of
   the proposed weighting method.
 
-The implementation includes:
-
-- generation of the functional treatment, covariates, and outcome under
-  the four simulation settings;
-- functional principal component analysis (FPCA);
-- estimation of the proposed SFPS weights;
-- weighted estimation of the causal effect function; and
-- evaluation using MISE, AISE, and ISB.
-
 ## Implementation
 
 The code in this repository is implemented independently of the authors’
