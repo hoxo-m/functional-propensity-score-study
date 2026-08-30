@@ -35,7 +35,7 @@ The main goals of this repository are to:
 ## Current status
 
 The simulation study reported in Table 1 has been independently
-reimplemented and reproduced.
+reimplemented, and its main results have been reproduced.
 
 - [Reproduction of Table 1](Table1.md)
 
@@ -115,5 +115,6 @@ The analyses are written in R. The main packages currently used include:
 ## Notes
 
 This repository is intended for methodological study and reproducibility.
-Results differ slightly from those reported in the original paper because
-the implementation is independent and use different numerical routines.
+The reproduced results differ slightly from those reported in the original
+paper because this implementation was developed independently and uses
+different numerical routines.
