@@ -16,7 +16,8 @@ An implementation by the authors is available as the
 CRAN.
 
 The code in this repository is an independent reimplementation created
-for methodological study and reproducibility.
+for methodological study and reproducibility; it is not an official
+implementation of the method.
 
 The main goals of this repository are to:
 
@@ -25,12 +26,10 @@ The main goals of this repository are to:
 - reproduce the numerical results reported in the paper; and
 - investigate the behavior and assumptions of the proposed method.
 
-This is a study and reproduction repository, not an official
-implementation of the method.
-
 ## Current status
 
-The simulation study reported in Table 1 is currently implemented.
+The simulation study reported in Table 1 has been independently
+reimplemented and reproduced.
 
 - [Reproduction of Table 1](Table1.md)
 
@@ -56,12 +55,8 @@ The main R code is contained in the `R/` directory:
   process;
 - `R/estimate_SFPS_weights.R` implements FPCA and estimation of the SFPS
   weights; and
-- `R/estimate_causal_effect.R` estimates the causal effect function
-  using weighted functional principal component scores.
-
-The implementation is written independently from the official
-`FPScausal` package so that the individual steps of the proposed method
-can be examined and validated separately.
+- `R/estimate_causal_effect.R` estimates the causal effect function by
+  weighted regression on functional principal component scores.
 
 ### Implementation notes
 
@@ -79,8 +74,11 @@ In Supplementary Material C, some covariate errors are specified as
 $N(0, 0.5)$. For these terms, this reproduction uses `0.5` directly as
 the standard deviation, i.e. `rnorm(..., sd = 0.5)`.
 
-This was because reproducing the values in Table 1 was impossible when
-aligning with either notational convention.
+In our experiments, applying either interpretation consistently to all
+normal distributions did not reproduce the results reported in Table 1.
+We therefore use `sd = 5` for the outcome error while retaining
+`sd = 0.5` for the covariate errors specified as $N(0, 0.5)$ in
+Supplementary Material C.
 
 ## Reproduction of Table 1
 
@@ -113,6 +111,6 @@ The analyses are written in R. The main packages currently used include:
 ## Notes
 
 This repository is intended for methodological study and
-reproducibility. Results may differ slightly from those reported in the
-original paper because the implementation is independent and may use
+reproducibility. Results differ slightly from those reported in the
+original paper because the implementation is independent and use
 different numerical routines.
