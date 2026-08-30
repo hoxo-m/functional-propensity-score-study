@@ -69,7 +69,7 @@ $$g_i =
 \begin{bmatrix}
   A_i \\
   C_i \\
-  \operatorname{vec}(A_i C_i^\top)
+  \mathrm{vec}(A_i C_i^\top)
 \end{bmatrix}.$$
 
 Because $A$ and $C$ are centered during standardization,
@@ -96,22 +96,26 @@ standardized.
 This point matters if $\overline{g} = 0$ is used to simplify terms in
 the dual objective.
 
+The following shows specific calculation results as an example:
+
 ``` r
 library(FPScausal)
 library(fdapace)
 
-data <- simulate_fps_data(include_functional_cov = FALSE, seed = 314)
+n <- 200
+
+data <- simulate_fps_data(n, include_functional_cov = FALSE, seed = 314)
 time_grid <- seq(0, 1, length.out = 51)
 
-Ly <- data$X |> split(seq_len(200))
-Lt <- rep(list(time_grid), times = 200)
+Ly <- data$X |> split(seq_len(n))
+Lt <- rep(list(time_grid), times = n)
 fpca <- FPCA(Ly, Lt)
 
-A <- t(scale(fpca$xiEst)) # (6, 200)
-C <- t(scale(data$C))     # (3, 200)
+A <- t(scale(fpca$xiEst)) # (6, n)
+C <- t(scale(data$C))     # (3, n)
 
-vec_AC <- matrix(nrow = 18, ncol = 200)
-for (i in 1:200) {
+vec_AC <- matrix(nrow = 6*3, ncol = n)
+for (i in seq_len(n)) {
   vec_AC[, i] <- as.vector(A[, i, drop = FALSE] %*% t(C[, i]))
 }
 
