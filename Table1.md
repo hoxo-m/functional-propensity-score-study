@@ -100,14 +100,14 @@ true_effects_mu <- drop(t(dummy_data$true_eigenfunction_phi_values) %*%
 
 For each replication, the integrated squared error (ISE) is computed as
 
-$$\mathrm{ISE} = \int_0^1 \left\{ \widehat{\mu}(t)-\mu(t) \right\}^2 dt.$$
+$$\mathrm{ISE} = \int_0^1 \left( \widehat{\mu}(t)-\mu(t) \right)^2 dt.$$
 
 The integral is approximated numerically using the trapezoidal rule.
 
 Across the 200 replications, we report the median ISE (MISE), the
 average ISE (AISE), and the integrated squared bias (ISB),
 
-$$\mathrm{ISB} = \int_0^1 \left\{ \overline{\widehat{\mu}}(t)-\mu(t) \right\}^2 dt,$$
+$$\mathrm{ISB} = \int_0^1 \left( \overline{\widehat{\mu}}(t)-\mu(t) \right)^2 dt,$$
 
 where $\overline{\hat{\mu}}(t)$ denotes the average estimated causal
 effect function across replications.
