@@ -56,6 +56,10 @@ estimate_SFPS_weights <- function(
   opt <- optim(theta, dual_objective, method = "BFGS")
   theta_opt <- opt$par
   
+  if (opt$convergence != 0) {
+    warning("SFPS weight optimization did not converge.")
+  }
+  
   linear_predictor <- drop(-stacked_balancing_moments_g %*% theta_opt)
   linear_predictor <- linear_predictor - max(linear_predictor)
   

@@ -120,5 +120,5 @@ The analyses are written in R. The main packages currently used include:
 
 This repository is intended for methodological study and reproducibility.
 The reproduced results differ slightly from those reported in the original
-paper because this implementation was developed independently and uses
-different numerical routines.
+paper because this implementation was developed independently and differs
+in some preprocessing, FPCA, and numerical optimization details.
