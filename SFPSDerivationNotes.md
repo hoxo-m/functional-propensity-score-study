@@ -96,7 +96,7 @@ standardized.
 This point matters if $\overline{g} = 0$ is used to simplify terms in
 the dual objective.
 
-The following shows specific calculation results as an example:
+The following numerical example illustrates this point:
 
 ``` r
 library(FPScausal)
