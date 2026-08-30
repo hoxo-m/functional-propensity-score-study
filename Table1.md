@@ -3,8 +3,8 @@ Reproduction of Table 1
 
 <!-- Table1.md is generated from Table1.Rmd Please edit that file -->
 
-This document reproduces the simulation study reported in Table 1 of the
-paper.
+This document reproduces the simulation results reported in Table 1 of
+the paper.
 
 > Ciardulli, S., Fontana, N., Vantini, S., & Ieva, F. (2026).
 > Generalized propensity score weighting for functional causal inference
@@ -13,9 +13,10 @@ paper.
 ## Simulation data
 
 For each combination of the treatment–covariate and covariate–outcome
-relationships, we generate 200 independent data sets with a sample size
-of 200. The same simulated data sets are reused across the different
-weighting and PVE specifications within each data-generating scenario.
+relationships, we generate 200 independent data sets, each with a sample
+size of 200. The same simulated data sets are reused across the
+different weighting and PVE specifications within each data-generating
+scenario.
 
 ``` r
 library(tidyverse)
@@ -73,11 +74,21 @@ list_data <- list_settings |>
 
 Under the simulation design, the true causal effect function is
 
+$$\mu(t) = 2\sqrt{2}\sin(2\pi t) + \sqrt{2}\cos(2\pi t) + 
+\frac{\sqrt{2}}{2}\sin(4\pi t) + \frac{\sqrt{2}}{2}\cos(4\pi t).$$
+
+Using the eigenfunctions defined in the simulation,
+
+$$\phi_{2j-1}(t)=\sqrt{2}\sin(2\pi jt),
+\qquad
+\phi_{2j}(t)=\sqrt{2}\cos(2\pi jt),$$
+
+this can equivalently be written as
+
 $$\mu(t) = 2\phi_1(t) + \phi_2(t) + 0.5\phi_3(t) + 0.5\phi_4(t).$$
 
-Because the eigenfunctions used to generate the functional treatment are
-known, the true effect can be evaluated directly on the simulation time
-grid.
+This equivalent representation is used below to evaluate the true effect
+function on the simulation time grid.
 
 ``` r
 dummy_data <- list_data[[1]][[1]]
@@ -89,16 +100,16 @@ true_effects_mu <- drop(t(dummy_data$true_eigenfunction_phi_values) %*%
 
 For each replication, the integrated squared error (ISE) is computed as
 
-$$\mathrm{ISE} = \int_0^1 \left\{ \hat{\mu}(t)-\mu(t) \right\}^2 dt.$$
+$$\mathrm{ISE} = \int_0^1 \left\{ \widehat{\mu}(t)-\mu(t) \right\}^2 dt.$$
 
 The integral is approximated numerically using the trapezoidal rule.
 
 Across the 200 replications, we report the median ISE (MISE), the
 average ISE (AISE), and the integrated squared bias (ISB),
 
-$$\mathrm{ISB} = \int_0^1 \left\{ \overline{\hat{\mu}(t)}-\mu(t) \right\}^2 dt,$$
+$$\mathrm{ISB} = \int_0^1 \left\{ \overline{\widehat{\mu}}(t)-\mu(t) \right\}^2 dt,$$
 
-where $\overline{\hat{\mu}(t)}$ denotes the average estimated causal
+where $\overline{\hat{\mu}}(t)$ denotes the average estimated causal
 effect function across replications.
 
 ## Estimation
@@ -106,12 +117,15 @@ effect function across replications.
 For each simulated data set, we estimate the causal effect function
 using either the unweighted estimator or the SFPS-weighted estimator.
 
-For the weighted estimator, the SFPS weights are first estimated using
-the $PVE_L$ threshold specified by `PVE`. Functional principal component
-scores used in the outcome regression are then selected separately using
-$PVE_{L^*}$ as `PVE*`. Thus, `PVE` controls the dimension used for
-estimating the weights, whereas `PVE*` controls the dimension used for
-estimating the causal effect function.
+For the weighted estimator, the truncation level $L$ used to estimate
+the SFPS weights is selected according to the PVE threshold specified by
+`PVE`. Separately, the truncation level $L^*$ used in the outcome
+regression is selected according to the PVE threshold specified by
+`PVE*`.
+
+Thus, `PVE` determines the number of FPC scores used to estimate the
+SFPS weights, whereas `PVE*` determines the number of FPC scores used to
+estimate the causal effect function.
 
 ``` r
 n_time_points <- length(dummy_data$time_grid)
@@ -148,9 +162,10 @@ run_simulation <- function(data_list, settings) {
 
 ## Monte Carlo simulation
 
-The simulation settings are evaluated in parallel. For each setting, the
-estimator is applied to the 200 previously generated data sets, and the
-resulting effect functions are summarized using MISE, AISE, and ISB.
+For each simulation setting, the estimator is applied to the 200 data
+sets generated above. The simulation settings are evaluated in parallel
+for computational efficiency, and the resulting effect estimates are
+summarized using MISE, AISE, and ISB.
 
 ``` r
 library(future)
@@ -165,6 +180,9 @@ df <- cbind(simulation_settings, result)
 ```
 
 ## Results
+
+The results are presented separately according to the PVE threshold used
+to select $L^*$ in the outcome regression.
 
 ### $PVE_{L^*} = 0.95$
 
