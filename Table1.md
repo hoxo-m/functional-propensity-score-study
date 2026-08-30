@@ -1,6 +1,26 @@
+Reproduction of Table 1
+================
+
+<!-- Table1.md is generated from Table1.Rmd Please edit that file -->
+
+This document reproduces the simulation study reported in Table 1 of the
+paper.
+
+> Ciardulli, S., Fontana, N., Vantini, S., & Ieva, F. (2026).
+> Generalized propensity score weighting for functional causal inference
+> framework. <https://arxiv.org/abs/2608.03200>
+
+## Simulation data
+
+For each combination of the treatment–covariate and covariate–outcome
+relationships, we generate 200 independent data sets with a sample size
+of 200. The same simulated data sets are reused across the different
+weighting and PVE specifications within each data-generating scenario.
 
 ``` r
 library(tidyverse)
+box::use(./R/data_generation)
+box::use(estimate = ./R/estimate_causal_effect)
 
 simulation_settings <- tribble(
   ~ `Treat-Cov`, ~ `Cov-Outcome`, ~ `PVE`, ~ `PVE*`, ~ `Weight`, 
@@ -29,14 +49,9 @@ simulation_settings <- tribble(
     "Non-linear",  "Non-linear",    "0.99",  "0.95",   "Weighted",
     "Non-linear",  "Non-linear",    "0.99",  "0.99",   "Weighted",
 )
-```
 
-``` r
-box::use(./R/data_generation)
-box::use(estimate = ./R/estimate_causal_effect)
-
-n_replications <- 200
-sample_size <- 200
+n_replications <- 200 # R in the paper
+sample_size <- 200    # n in the paper
 
 get_data_impl <- function(treatment_covariate_relation, 
                           covariate_outcome_relation) {
@@ -52,11 +67,53 @@ set.seed(314)
 list_settings <- simulation_settings |> split(seq_len(nrow(simulation_settings)))
 list_data <- list_settings |> 
   map(\(settings) get_data(settings$`Treat-Cov`, settings$`Cov-Outcome`))
+```
 
+## True causal effect function
+
+Under the simulation design, the true causal effect function is
+
+$$\mu(t) = 2\phi_1(t) + \phi_2(t) + 0.5\phi_3(t) + 0.5\phi_4(t).$$
+
+Because the eigenfunctions used to generate the functional treatment are
+known, the true effect can be evaluated directly on the simulation time
+grid.
+
+``` r
 dummy_data <- list_data[[1]][[1]]
 true_effects_mu <- drop(t(dummy_data$true_eigenfunction_phi_values) %*% 
                           data_generation$true_effect_coefficients)
+```
 
+## Evaluation criteria
+
+For each replication, the integrated squared error (ISE) is computed as
+
+$$\mathrm{ISE} = \int_0^1 \left\{ \hat{\mu}(t)-\mu(t) \right\}^2 dt.$$
+
+The integral is approximated numerically using the trapezoidal rule.
+
+Across the 200 replications, we report the median ISE (MISE), the
+average ISE (AISE), and the integrated squared bias (ISB),
+
+$$\mathrm{ISB} = \int_0^1 \left\{ \overline{\hat{\mu}(t)}-\mu(t) \right\}^2 dt,$$
+
+where $\overline{\hat{\mu}(t)}$ denotes the average estimated causal
+effect function across replications.
+
+## Estimation
+
+For each simulated data set, we estimate the causal effect function
+using either the unweighted estimator or the SFPS-weighted estimator.
+
+For the weighted estimator, the SFPS weights are first estimated using
+the $PVE_L$ threshold specified by `PVE`. Functional principal component
+scores used in the outcome regression are then selected separately using
+$PVE_{L^*}$ as `PVE*`. Thus, `PVE` controls the dimension used for
+estimating the weights, whereas `PVE*` controls the dimension used for
+estimating the causal effect function.
+
+``` r
 n_time_points <- length(dummy_data$time_grid)
 
 dx <- diff(dummy_data$time_grid)
@@ -89,6 +146,12 @@ run_simulation <- function(data_list, settings) {
 }
 ```
 
+## Monte Carlo simulation
+
+The simulation settings are evaluated in parallel. For each setting, the
+estimator is applied to the 200 previously generated data sets, and the
+resulting effect functions are summarized using MISE, AISE, and ISB.
+
 ``` r
 library(future)
 library(furrr)
@@ -100,6 +163,10 @@ result <- future_map2_dfr(list_data, list_settings, run_simulation)
 
 df <- cbind(simulation_settings, result)
 ```
+
+## Results
+
+### $PVE_{L^*} = 0.95$
 
 ``` r
 knitr::kable(df |> filter(`PVE*` == "0.95"), digits = 4)
@@ -119,6 +186,8 @@ knitr::kable(df |> filter(`PVE*` == "0.95"), digits = 4)
 | Non-linear | Non-linear  |      | 0.95  | Unweighted | 0.3427 | 0.3669 | 0.2421 |
 | Non-linear | Non-linear  | 0.95 | 0.95  | Weighted   | 0.1241 | 0.1482 | 0.0011 |
 | Non-linear | Non-linear  | 0.99 | 0.95  | Weighted   | 0.1189 | 0.1500 | 0.0011 |
+
+### $PVE_{L^*} = 0.99$
 
 ``` r
 knitr::kable(df |> filter(`PVE*` == "0.99"), digits = 4)
