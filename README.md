@@ -8,8 +8,8 @@ This repository contains an independent study and reproduction of the
 methods proposed in:
 
 > Ciardulli, S., Fontana, N., Vantini, S., & Ieva, F. (2026).
-> *Generalized propensity score weighting for functional causal
-> inference framework*. arXiv:2608.03200.
+> Generalized propensity score weighting for functional causal inference
+> framework. <https://arxiv.org/abs/2608.03200>
 
 An implementation by the authors is available as the
 [`FPScausal`](https://CRAN.R-project.org/package=FPScausal) R package on
