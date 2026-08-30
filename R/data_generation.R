@@ -1,3 +1,8 @@
+# Note: the normal-distribution parameterization in the paper is ambiguous.
+# For the outcome error N(0, 25), 25 is interpreted as the variance.
+# For the covariate errors N(0, 0.5) in Supplementary Material C,
+# 0.5 is used directly as the standard deviation.
+
 box::use(stats[rnorm])
 
 sqrt2 <- sqrt(2)
@@ -26,6 +31,8 @@ generate_covariates_C <- function(latent_variables_Z, treatment_covariate_relati
   covariates_C[, 2] <- 0.2 * latent_variables_Z[, 2]
   covariates_C[, 3] <- 0.2 * latent_variables_Z[, 3]
   
+  # Supplementary Material C specifies N(0, 0.5) for W2 and W3.
+  # Here, 0.5 is used directly as the standard deviation in rnorm().
   covariate_errors_W <- rnorm(n = n * 3L, mean = 0, sd = c(1, 0.5, 0.5))
   covariate_errors_W <- matrix(covariate_errors_W, nrow = n, ncol = 3L, byrow = TRUE)
   
@@ -40,8 +47,9 @@ generate_outcome_Y <- function(fpc_scores_A, covariate_effect_g_C) {
   
   integral_term <- fpc_scores_A %*% true_effect_coefficients # (n,1)=(n,6)x(6,1)
   integral_term <- drop(integral_term) # to n-vector
-  
-  # outcome_errors <- rnorm(n = 1L, mean = 0, sd = 25)
+
+  # The paper specifies epsilon_i ~ N(0, 25).
+  # Interpreting 25 as the variance, rnorm() uses sd = sqrt(25) = 5.
   outcome_errors <- rnorm(n, mean = 0, sd = 5)
   
   1 + integral_term + covariate_effect_g_C + outcome_errors

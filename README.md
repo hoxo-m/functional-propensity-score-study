@@ -11,6 +11,13 @@ methods proposed in:
 > *Generalized propensity score weighting for functional causal
 > inference framework*. arXiv:2608.03200.
 
+An implementation by the authors is available as the
+[`FPScausal`](https://CRAN.R-project.org/package=FPScausal) R package on
+CRAN.
+
+The code in this repository is an independent reimplementation created
+for methodological study and reproducibility.
+
 The main goals of this repository are to:
 
 - understand the proposed functional propensity score weighting method;
@@ -38,6 +45,11 @@ The implementation includes:
 
 ## Implementation
 
+The code in this repository is implemented independently of the authors’
+`FPScausal` package. This allows the individual steps of the method,
+including FPCA, construction of the balancing moments, SFPS weight
+estimation, and causal effect estimation, to be examined separately.
+
 The main R code is contained in the `R/` directory:
 
 - `R/data_generation.R` implements the simulation data-generating
@@ -50,6 +62,25 @@ The main R code is contained in the `R/` directory:
 The implementation is written independently from the official
 `FPScausal` package so that the individual steps of the proposed method
 can be examined and validated separately.
+
+### Implementation notes
+
+There is an ambiguity in the parameterization of the normal
+distributions used in the paper.
+
+For the outcome error, the paper specifies
+
+$$\epsilon_i \sim N(0, 25).$$
+
+We interpret 25 as the variance, so the R implementation uses
+`rnorm(..., sd = 5)`.
+
+In Supplementary Material C, some covariate errors are specified as
+$N(0, 0.5)$. For these terms, this reproduction uses `0.5` directly as
+the standard deviation, i.e. `rnorm(..., sd = 0.5)`.
+
+This was because reproducing the values in Table 1 was impossible when
+aligning with either notational convention.
 
 ## Reproduction of Table 1
 
@@ -67,18 +98,6 @@ selected separately using the PVE thresholds denoted by `PVE` and
 
 See [Table1.md](Table1.md) for the full simulation setup, code, and
 results.
-
-## Further investigations
-
-In addition to reproducing the reported simulation results, this
-repository may be used to investigate several aspects of the method,
-including:
-
-- the role of FPCA truncation in SFPS estimation;
-- the balancing conditions used to estimate the SFPS weights;
-- the dual optimization problem used in the proposed method;
-- comparison with the method of Zhang, Xue, and Wang (2021); and
-- comparison with multivariate generalized propensity score methods.
 
 ## Requirements
 
