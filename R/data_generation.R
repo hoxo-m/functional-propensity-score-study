@@ -32,11 +32,11 @@ generate_covariates_C <- function(latent_variables_Z, treatment_covariate_relati
   covariates_C + covariate_errors_W
 }
 
+#' @export
+true_effect_coefficients <- c(2, 1, 0.5, 0.5, 0, 0)
+
 generate_outcome_Y <- function(fpc_scores_A, covariate_effect_g_C) {
   n <- nrow(fpc_scores_A)
-  
-  true_effect_coefficients <- c(2, 1, 0.5, 0.5, 0, 0)
-  true_effect_coefficients <- matrix(true_effect_coefficients, ncol = 1L) # (6,1)
   
   integral_term <- fpc_scores_A %*% true_effect_coefficients # (n,1)=(n,6)x(6,1)
   integral_term <- drop(integral_term) # to n-vector
